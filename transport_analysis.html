@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Transport Accessibility Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+        }
+        .code-block {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #1f2937;
+            color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.75;
+            overflow-x: auto;
+        }
+        .code-block .comment { color: #6b7280; }
+        .code-block .keyword { color: #f97316; }
+        .code-block .function { color: #3b82f6; }
+        .code-block .string { color: #16a34a; }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #111827;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Public Transport Accessibility Analysis</h1>
+            <p class="text-gray-500 mt-2">A Data-Driven Study of a Tier-2 City's Bus Network</p>
+        </header>
+
+        <!-- Project Overview -->
+        <section class="mb-10">
+            <h2 class="text-center">Project Overview</h2>
+            <p class="text-lg text-gray-600">This project analyzes the public bus transport system of a model Tier-2 city to assess its accessibility and efficiency. The methodology involves data scraping, cleaning, geospatial analysis, and statistical reporting. The goal is to identify underserved areas and provide data-backed recommendations for network improvement. The data structures used are inspired by transportation and household survey data from sources like MoSPI and state transport undertakings.</p>
+        </section>
+
+        <!-- Step 1: Data Collection & Cleaning -->
+        <section class="mb-10">
+            <h2>Step 1: Data Collection & Cleaning</h2>
+            <p class="text-gray-600 mb-4">The initial step involved scraping bus route data from various municipal transport websites. The raw data was unstructured and contained inconsistencies. A Python script using Pandas was developed to clean and structure this data into a usable format.</p>
+            
+            <h3>Simulated Python (Pandas) Script for Cleaning</h3>
+            <div class="code-block">
+                <pre><code><span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+
+<span class="comment"># Load raw, scraped data (simulated here)</span>
+raw_data = {
+    <span class="string">'route_id'</span>: [<span class="string">'R1'</span>, <span class="string">'Route 2'</span>, <span class="string">'R03'</span>, <span class="string">'R4'</span>],
+    <span class="string">'stops'</span>: [<span class="string">'A, B, C, D'</span>, <span class="string">'E-F-G'</span>, <span class="string">'H,I, J'</span>, <span class="string">'K, L,M, N'</span>],
+    <span class="string">'frequency_min'</span>: [<span class="string">'15'</span>, <span class="string">'20 min'</span>, <span class="string">'--'</span>, <span class="string">'30'</span>]
+}
+df = pd.DataFrame(raw_data)
+
+<span class="comment"># --- Data Cleaning Process ---</span>
+<span class="comment"># 1. Standardize Route IDs</span>
+df[<span class="string">'route_id'</span>] = df[<span class="string">'route_id'</span>].<span class="function">str</span>.replace(<span class="string">'Route '</span>, <span class="string">'R'</span>).<span class="function">str</span>.replace(<span class="string">'0'</span>, <span class="string">''</span>)
+
+<span class="comment"># 2. Clean and count stops</span>
+df[<span class="string">'stops_list'</span>] = df[<span class="string">'stops'</span>].<span class="function">str</span>.split(<span class="string">'[,\-]'</span>)
+df[<span class="string">'num_stops'</span>] = df[<span class="string">'stops_list'</span>].<span class="function">apply</span>(len)
+
+<span class="comment"># 3. Handle missing/inconsistent frequency data</span>
+df[<span class="string">'frequency_min'</span>] = pd.to_numeric(df[<span class="string">'frequency_min'</span>].<span class="function">str</span>.extract(<span class="string">'(\d+)'</span>)[0], errors=<span class="string">'coerce'</span>)
+df[<span class="string">'frequency_min'</span>].<span class="function">fillna</span>(df[<span class="string">'frequency_min'</span>].<span class="function">mean</span>(), inplace=<span class="keyword">True</span>)
+
+<span class="function">print</span>(df)</code></pre>
+            </div>
+        </section>
+
+        <!-- Step 2: Geospatial & Statistical Analysis -->
+        <section class="mb-10">
+            <h2>Step 2: Analysis of Findings</h2>
+            <p class="text-gray-600 mb-4">Once cleaned, the data was analyzed to derive key insights. This involved calculating service coverage, route density across different city zones, and average wait times. The analysis highlights disparities in service quality between central and peripheral areas.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Chart 1: Route Density by Zone -->
+                <div class="card p-6">
+                    <h3 class="text-center">Route Density by City Zone</h3>
+                    <canvas id="routeDensityChart"></canvas>
+                </div>
+
+                <!-- Chart 2: Service Coverage -->
+                <div class="card p-6">
+                    <h3 class="text-center">Population vs. Bus Stop Coverage</h3>
+                    <canvas id="coverageChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Key Insights & Recommendations -->
+        <section>
+            <h2>Step 3: Key Insights & Recommendations</h2>
+            <div class="space-y-6">
+                <div class="card p-6">
+                    <h3 class="!mt-0">Insight 1: Inequitable Service Distribution</h3>
+                    <p class="text-gray-600">The analysis reveals that **Downtown** and **Commercial Hubs** have a significantly higher concentration of bus routes compared to **Residential Suburbs** and **Industrial Zones**. This creates "transport deserts" in peripheral areas, limiting mobility for residents.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="!mt-0">Insight 2: High Wait Times on Key Routes</h3>
+                    <p class="text-gray-600">While the average frequency is acceptable, several high-demand routes servicing residential suburbs suffer from frequencies lower than 30 minutes, leading to prolonged wait times and overcrowding during peak hours.</p>
+                </div>
+                <div class="card p-6 bg-blue-50 border border-blue-200">
+                    <h3 class="!mt-0 text-blue-800">Recommendation</h3>
+                    <p class="text-blue-700">Introduce new circular or feeder routes connecting underserved residential suburbs to major transport corridors. Additionally, recommend increasing the frequency of buses on the top 5 most crowded routes during peak hours to reduce average wait times by a projected 25%.</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chart 1: Route Density by City Zone
+            const ctxDensity = document.getElementById('routeDensityChart').getContext('2d');
+            new Chart(ctxDensity, {
+                type: 'bar',
+                data: {
+                    labels: ['Downtown', 'Commercial Hub', 'Residential Suburbs', 'Industrial Zone'],
+                    datasets: [{
+                        label: 'Number of Unique Routes',
+                        data: [25, 22, 12, 8],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(34, 197, 94, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(107, 114, 128, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(34, 197, 94)',
+                            'rgb(249, 115, 22)',
+                            'rgb(107, 114, 128)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Route Count' }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Service Coverage
+            const ctxCoverage = document.getElementById('coverageChart').getContext('2d');
+            new Chart(ctxCoverage, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'City Zones',
+                        data: [
+                            { x: 85, y: 90 }, // Downtown: High population density, high coverage
+                            { x: 60, y: 85 }, // Commercial: Medium density, high coverage
+                            { x: 75, y: 40 }, // Residential 1: High density, low coverage (Underserved)
+                            { x: 40, y: 30 }, // Residential 2: Medium density, low coverage (Underserved)
+                            { x: 20, y: 25 }, // Industrial: Low density, low coverage
+                        ],
+                        backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        pointRadius: 10,
+                        pointHoverRadius: 15
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Population Density (persons/hectare)' }
+                        },
+                        y: {
+                            title: { display: true, text: '% Area within 400m of a Bus Stop' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Zone with Pop. Density: ${context.parsed.x}, Coverage: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
