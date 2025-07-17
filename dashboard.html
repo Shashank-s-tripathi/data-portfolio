@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Mobility Insights Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .filter-select {
+            background-color: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800">Urban Mobility Insights Dashboard</h1>
+            <p class="text-gray-500 mt-1">A Data-Driven Analysis of Metropolitan Traffic Patterns</p>
+        </header>
+
+        <!-- Filters -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow-sm flex flex-col md:flex-row gap-4 items-center">
+            <h3 class="text-lg font-semibold text-gray-700">Filters:</h3>
+            <div class="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                <div>
+                    <label for="timeOfDay" class="block text-sm font-medium text-gray-600 mb-1">Time of Day</label>
+                    <select id="timeOfDay" class="filter-select w-full">
+                        <option value="all">All Day</option>
+                        <option value="morning">Morning Peak (7-10 AM)</option>
+                        <option value="afternoon">Afternoon (1-4 PM)</option>
+                        <option value="evening">Evening Peak (5-8 PM)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dayOfWeek" class="block text-sm font-medium text-gray-600 mb-1">Day of Week</label>
+                    <select id="dayOfWeek" class="filter-select w-full">
+                        <option value="all">All Week</option>
+                        <option value="weekday">Weekdays</option>
+                        <option value="weekend">Weekends</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="zone" class="block text-sm font-medium text-gray-600 mb-1">City Zone</label>
+                    <select id="zone" class="filter-select w-full">
+                        <option value="all">All Zones</option>
+                        <option value="downtown">Downtown</option>
+                        <option value="suburbs">Suburbs</option>
+                        <option value="industrial">Industrial Area</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            <!-- KPI Cards -->
+            <div class="card p-5 flex flex-col justify-center items-center text-center col-span-1">
+                <h4 class="text-gray-500 font-medium">Average Speed</h4>
+                <p id="avgSpeed" class="text-4xl font-bold text-blue-600 mt-2">34 <span class="text-xl">km/h</span></p>
+            </div>
+            <div class="card p-5 flex flex-col justify-center items-center text-center col-span-1">
+                <h4 class="text-gray-500 font-medium">Congestion Level</h4>
+                <p id="congestionLevel" class="text-4xl font-bold text-red-600 mt-2">45%</p>
+            </div>
+            <div class="card p-5 flex flex-col justify-center items-center text-center col-span-1">
+                <h4 class="text-gray-500 font-medium">Peak Hour Traffic</h4>
+                <p id="peakTraffic" class="text-4xl font-bold text-orange-500 mt-2">1,820 <span class="text-xl">vph</span></p>
+            </div>
+            <div class="card p-5 flex flex-col justify-center items-center text-center col-span-1">
+                <h4 class="text-gray-500 font-medium">Reported Incidents</h4>
+                <p id="totalIncidents" class="text-4xl font-bold text-yellow-500 mt-2">12</p>
+            </div>
+
+            <!-- Traffic Volume Chart -->
+            <div class="card p-6 md:col-span-2 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Traffic Volume by Hour</h3>
+                <canvas id="trafficVolumeChart"></canvas>
+            </div>
+
+            <!-- Congestion Hotspots Map -->
+            <div class="card p-6 md:col-span-2 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Congestion Hotspots</h3>
+                <div id="congestionMap" class="grid grid-cols-3 gap-2 h-64">
+                    <!-- Map will be generated by JS -->
+                </div>
+            </div>
+            
+            <!-- Average Speed by Day Chart -->
+            <div class="card p-6 md:col-span-1 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Average Speed by Day</h3>
+                <canvas id="avgSpeedByDayChart"></canvas>
+            </div>
+
+            <!-- Traffic Composition Chart -->
+            <div class="card p-6 md:col-span-1 lg:col-span-2">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Traffic Composition</h3>
+                <div class="h-64 flex items-center justify-center">
+                   <canvas id="trafficCompositionChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- MOCK DATA ---
+        // This simulates data you would get from a SQL database.
+        const mockData = {
+            all: {
+                all: {
+                    all: { avgSpeed: 34, congestion: 45, peakTraffic: 1820, incidents: 12, volume: [300, 450, 600, 1200, 1500, 1800, 1820, 1750, 1600, 1400, 1100, 900], speedByDay: [40, 38, 35, 33, 32, 45, 48], composition: [65, 20, 15], hotspots: [0.2, 0.8, 0.4, 0.9, 0.95, 0.5, 0.3, 0.6, 0.2] },
+                    weekday: { avgSpeed: 28, congestion: 65, peakTraffic: 2100, incidents: 10, volume: [400, 550, 700, 1500, 1800, 2100, 2050, 1950, 1800, 1600, 1300, 1000], speedByDay: [30, 28, 26, 25, 27, 50, 52], composition: [70, 18, 12], hotspots: [0.3, 0.9, 0.5, 0.95, 0.98, 0.6, 0.4, 0.7, 0.3] },
+                    weekend: { avgSpeed: 45, congestion: 20, peakTraffic: 1100, incidents: 2, volume: [200, 250, 300, 700, 900, 1100, 1050, 950, 800, 700, 600, 500], speedByDay: [42, 40, 41, 43, 45, 48, 46], composition: [55, 25, 20], hotspots: [0.1, 0.4, 0.2, 0.5, 0.6, 0.3, 0.1, 0.2, 0.1] }
+                },
+                morning: {
+                    all: { avgSpeed: 25, congestion: 75, peakTraffic: 2200, incidents: 7, volume: [1800, 2100, 2200, 1900], speedByDay: [25, 24, 23, 22, 24, 35, 38], composition: [75, 15, 10], hotspots: [0.4, 0.95, 0.6, 0.98, 1.0, 0.7, 0.5, 0.8, 0.4] }
+                },
+                afternoon: {
+                    all: { avgSpeed: 38, congestion: 35, peakTraffic: 1300, incidents: 2, volume: [1200, 1300, 1250, 1100], speedByDay: [38, 37, 36, 35, 37, 42, 44], composition: [60, 22, 18], hotspots: [0.2, 0.5, 0.3, 0.6, 0.7, 0.4, 0.2, 0.4, 0.2] }
+                },
+                evening: {
+                    all: { avgSpeed: 28, congestion: 70, peakTraffic: 2150, incidents: 5, volume: [2000, 2150, 2100, 1800], speedByDay: [28, 27, 26, 25, 27, 38, 40], composition: [68, 20, 12], hotspots: [0.3, 0.9, 0.5, 0.95, 0.98, 0.6, 0.4, 0.7, 0.3] }
+                }
+            },
+            downtown: {
+                all: { all: { avgSpeed: 22, congestion: 80, peakTraffic: 2500, incidents: 9, volume: [500, 700, 900, 1800, 2200, 2500, 2450, 2350, 2200, 2000, 1700, 1300], speedByDay: [25, 23, 21, 20, 22, 30, 32], composition: [75, 15, 10], hotspots: [0.5, 1.0, 0.7, 1.0, 1.0, 0.8, 0.6, 0.9, 0.5] } }
+            },
+            suburbs: {
+                all: { all: { avgSpeed: 48, congestion: 15, peakTraffic: 900, incidents: 2, volume: [150, 200, 250, 500, 700, 900, 850, 750, 600, 500, 400, 300], speedByDay: [50, 48, 47, 46, 48, 55, 58], composition: [60, 25, 15], hotspots: [0.1, 0.2, 0.1, 0.3, 0.4, 0.2, 0.1, 0.1, 0.1] } }
+            },
+            industrial: {
+                 all: { all: { avgSpeed: 35, congestion: 40, peakTraffic: 1500, incidents: 1, volume: [250, 350, 450, 900, 1200, 1500, 1450, 1350, 1200, 1000, 800, 600], speedByDay: [38, 36, 35, 34, 35, 40, 42], composition: [40, 20, 40], hotspots: [0.2, 0.6, 0.3, 0.7, 0.7, 0.5, 0.3, 0.5, 0.2] } }
+            }
+        };
+
+        // --- CHART.JS SETUP ---
+        let trafficVolumeChart, avgSpeedByDayChart, trafficCompositionChart;
+
+        // Function to initialize all charts
+        function initCharts() {
+            // Traffic Volume Chart
+            const ctxVolume = document.getElementById('trafficVolumeChart').getContext('2d');
+            trafficVolumeChart = new Chart(ctxVolume, {
+                type: 'line',
+                data: {
+                    labels: [], // Will be populated by update function
+                    datasets: [{
+                        label: 'Vehicles per Hour',
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Average Speed by Day Chart
+            const ctxSpeed = document.getElementById('avgSpeedByDayChart').getContext('2d');
+            avgSpeedByDayChart = new Chart(ctxSpeed, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Average Speed (km/h)',
+                        backgroundColor: ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'],
+                    }]
+                },
+                 options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+            });
+
+            // Traffic Composition Chart
+            const ctxComposition = document.getElementById('trafficCompositionChart').getContext('2d');
+            trafficCompositionChart = new Chart(ctxComposition, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cars', 'Buses/Trucks', 'Motorcycles'],
+                    datasets: [{
+                        label: 'Traffic Composition',
+                        backgroundColor: ['rgb(59, 130, 246)', 'rgb(239, 68, 68)', 'rgb(245, 158, 11)'],
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // --- UI UPDATE LOGIC ---
+        
+        // Function to update all visuals based on filter selection
+        function updateDashboard() {
+            const zone = document.getElementById('zone').value;
+            const timeOfDay = document.getElementById('timeOfDay').value;
+            const dayOfWeek = document.getElementById('dayOfWeek').value;
+
+            // Select data based on filters, with fallbacks
+            let data = (mockData[zone] && mockData[zone][timeOfDay] && mockData[zone][timeOfDay][dayOfWeek]) 
+                       || (mockData[zone] && mockData[zone][timeOfDay] && mockData[zone][timeOfDay]['all'])
+                       || (mockData[zone] && mockData[zone]['all'] && mockData[zone]['all'][dayOfWeek])
+                       || (mockData[zone] && mockData[zone]['all'] && mockData[zone]['all']['all'])
+                       || (mockData['all'][timeOfDay] && mockData['all'][timeOfDay][dayOfWeek])
+                       || (mockData['all'][timeOfDay] && mockData['all'][timeOfDay]['all'])
+                       || (mockData['all']['all'][dayOfWeek])
+                       || mockData.all.all.all;
+
+
+            // 1. Update KPI Cards
+            document.getElementById('avgSpeed').innerHTML = `${data.avgSpeed} <span class="text-xl">km/h</span>`;
+            document.getElementById('congestionLevel').textContent = `${data.congestion}%`;
+            document.getElementById('peakTraffic').innerHTML = `${data.peakTraffic.toLocaleString()} <span class="text-xl">vph</span>`;
+            document.getElementById('totalIncidents').textContent = data.incidents;
+
+            // 2. Update Traffic Volume Chart
+            let volumeLabels;
+            if (timeOfDay === 'morning') volumeLabels = ['7am', '8am', '9am', '10am'];
+            else if (timeOfDay === 'afternoon') volumeLabels = ['1pm', '2pm', '3pm', '4pm'];
+            else if (timeOfDay === 'evening') volumeLabels = ['5pm', '6pm', '7pm', '8pm'];
+            else volumeLabels = ['6am', '8am', '10am', '12pm', '2pm', '4pm', '6pm', '8pm', '10pm', '12am', '2am', '4am'];
+            
+            trafficVolumeChart.data.labels = volumeLabels;
+            trafficVolumeChart.data.datasets[0].data = data.volume;
+            trafficVolumeChart.update();
+
+            // 3. Update Average Speed Chart
+            avgSpeedByDayChart.data.datasets[0].data = data.speedByDay;
+            avgSpeedByDayChart.update();
+
+            // 4. Update Traffic Composition Chart
+            trafficCompositionChart.data.datasets[0].data = data.composition;
+            trafficCompositionChart.update();
+
+            // 5. Update Congestion Map
+            const mapContainer = document.getElementById('congestionMap');
+            mapContainer.innerHTML = ''; // Clear previous map
+            data.hotspots.forEach(value => {
+                const cell = document.createElement('div');
+                const bgColor = `rgba(239, 68, 68, ${value})`; // Red with opacity based on congestion
+                cell.className = 'rounded-md transition-all duration-300';
+                cell.style.backgroundColor = bgColor;
+                mapContainer.appendChild(cell);
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            updateDashboard(); // Initial load
+
+            // Attach listeners to filter dropdowns
+            document.getElementById('timeOfDay').addEventListener('change', updateDashboard);
+            document.getElementById('dayOfWeek').addEventListener('change', updateDashboard);
+            document.getElementById('zone').addEventListener('change', updateDashboard);
+        });
+    </script>
+
+</body>
+</html>
